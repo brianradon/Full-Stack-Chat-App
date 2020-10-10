@@ -10,7 +10,7 @@ export default function ChatHistory() {
         },
         {
             name: "Thomas",
-            message: "Hello World"
+            message: "Plwpflwefpwef"
         }
     ]);
 
@@ -25,11 +25,13 @@ export default function ChatHistory() {
     })
 
     return (
-        <div>
+        <div className="chat-history-container">
+            <ul className="chat-history">
             { messages.map((message, index) => (
                 // <Message username={ userMessage.name } userMessage={ userMessage.message }/>
-                <h1 key={ index }>{ message.name }</h1>
+                <li key={ index }>{ message.name }: { message.message }</li>
             ))}
+            </ul>
         </div>
     )
 }
