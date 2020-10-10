@@ -23,6 +23,18 @@ def on_connect():
 def on_disconnect():
     print ('Someone disconnected!')
 
+@socketio.on("message to server")
+def message_to_client(data):
+    print("Received a message.")
+    message_received = {
+        "name": data["name"],
+        "message": data["message"]
+    }
+    socketio.emit("message to client", {
+        "name": message_received["name"],
+        "message": message_received["message"]
+    })
+
 @socketio.on('new number')
 def on_new_number(data):
     
