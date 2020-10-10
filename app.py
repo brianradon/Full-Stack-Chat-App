@@ -10,10 +10,16 @@ socketio.init_app(app, cors_allowed_origins="*")
 # GLOBAL 
 class ChatBot:
     def __init__(self):
-        bot_name = "Poke Bot"
+        self.bot_name = "Poke Bot"
     
     def help(self):
         print("This is the help section!")
+        socketio.emit("message to client",
+        {
+            "name": self.bot_name,
+            "message": """Looking for help?  Try some of these commands:
+                \n!! about\n!! funtranslate <message>\n"""
+        })
 
 poke_bot = ChatBot()
 
@@ -46,13 +52,13 @@ def message_to_client(data):
         "message": data["message"]
     }
 
-    checkBotMessage(data["message"])
-
     print(data["message"])
     socketio.emit("message to client", {
         "name": message_received["name"],
         "message": message_received["message"]
     })
+
+    checkBotMessage(data["message"])
 
 if __name__ == '__main__': 
     socketio.run(
