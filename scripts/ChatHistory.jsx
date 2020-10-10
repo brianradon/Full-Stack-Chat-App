@@ -28,7 +28,6 @@ export default function ChatHistory() {
         <div className="chat-history-container">
             <ul className="chat-history">
             { messages.map((message, index) => (
-                // <Message username={ userMessage.name } userMessage={ userMessage.message }/>
                 <li key={ index }>{ message.name }: { message.message }</li>
             ))}
             </ul>
