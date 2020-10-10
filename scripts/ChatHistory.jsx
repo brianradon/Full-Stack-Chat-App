@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Socket } from "./Socket";
+import Message from "./Message";
 
 export default function ChatHistory() {
 
@@ -22,13 +23,13 @@ export default function ChatHistory() {
                 message: data["message"]
             }]);
         })
-    })
+    });
 
     return (
         <div className="chat-history-container">
             <ul className="chat-history">
             { messages.map((message, index) => (
-                <li key={ index }>{ message.name }: { message.message }</li>
+                <Message key={ index } username={ message.name } userMessage={ message.message }  />
             ))}
             </ul>
         </div>

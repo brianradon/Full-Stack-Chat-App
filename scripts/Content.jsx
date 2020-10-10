@@ -43,7 +43,6 @@ export function Content() {
             <ChatHistory />
             {/* <Button /> */}
             <MessageForm />
-            <Message />
             {/* <span>{output}</span> */}
         </div>
     );
