@@ -10,7 +10,8 @@ export function MessageForm() {
 
         Socket.emit("message to server", {
             "name": nameReference.current.value,
-            "message": messageReference.current.value
+            "message": messageReference.current.value,
+            "userType": "user"
         });
 
         // console.log(nameReference.current.value + ": " + messageReference.current.value);
@@ -19,7 +20,7 @@ export function MessageForm() {
     }
 
     return (
-        <div>
+        <div className="submit-form">
             <form onSubmit={ addMessage }>
                 <input type="text" placeholder="Username" ref={ nameReference }/>
                 <input type="text" placeholder="Type in a message..." ref={ messageReference }/>

@@ -1,18 +1,54 @@
+from os.path import join, dirname
+from dotenv import load_dotenv
 import os
 import flask
+import flask_sqlalchemy
 import flask_socketio
+import models
 import time
+
+MESSAGES_RECEIVED_CHANNEL = "all messages received"
 
 app = flask.Flask(__name__)
 socketio = flask_socketio.SocketIO(app)
 socketio.init_app(app, cors_allowed_origins="*")
 
+dotenv_path = join(dirname(__file__), 'sql.env')
+load_dotenv(dotenv_path)
+
+# DATABASE
+sql_user = os.environ['SQL_USER']
+sql_pwd = os.environ['SQL_PASSWORD']
+dbuser = os.environ['USER']
+
+database_uri = 'postgresql://{}:{}@localhost/postgres'.format(
+    sql_user, sql_pwd)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
+
+db = flask_sqlalchemy.SQLAlchemy(app)
+db.init_app(app)
+db.app = app
+
+db.create_all()
+db.session.commit()
+
+def emit_all_messages(channel):
+    all_messages = [db_chat.message for db_chat in db.session.query(models.Chat).all()]
+
+    socketio.emit(channel, {
+        "all_messages": all_messages
+    })
 
 # GLOBAL 
 class ChatBot:
     def __init__(self):
         self.bot_name = "Poke Bot"
     
+    # todo implement github
+
+    # todo impement poke-api
+
     def about(self):
         print("This is the about section!")
         socketio.emit("message to client",
@@ -21,6 +57,12 @@ class ChatBot:
             "message": """Hello there!  I am Poke Bot.  Try typing '!! help' for a list of 
             functionality! """
         })
+        bot_message = """Hello there!  I am Poke Bot.  Try typing '!! help' for a list of 
+            functionality! """
+        db.session.add(models.Chat(bot_message))
+        db.session.commit();
+        
+        emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
     def help(self):
         print("This is the help section!")
@@ -53,6 +95,8 @@ def checkBotMessage(string):
 # SOCKET
 @app.route('/')
 def hello():
+    emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
+
     return flask.render_template('index.html')
 
 @socketio.on('connect')
@@ -61,6 +105,8 @@ def on_connect():
     socketio.emit('connected', {
         'test': 'Connected'
     })
+
+    emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
 @socketio.on('disconnect')
 def on_disconnect():
@@ -73,6 +119,11 @@ def message_to_client(data):
         "name": data["name"],
         "message": data["message"]
     }
+
+    db.session.add(models.Chat(data["message"]))
+    db.session.commit();
+
+    emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
     print(data["message"])
     print("Sending message")
