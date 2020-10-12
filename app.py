@@ -7,6 +7,8 @@ import flask_socketio
 import models
 import time
 
+# test comment
+
 MESSAGES_RECEIVED_CHANNEL = "all messages received"
 
 app = flask.Flask(__name__)
