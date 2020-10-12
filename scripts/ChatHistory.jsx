@@ -6,15 +6,13 @@ import { get } from 'jquery';
 
 
 export default function ChatHistory() {
-
+    const [users, setUsers] = React.useState([]);
     const [messages, setMessages] = React.useState([]);
 
     const bottomRef = React.useRef(null);
     React.useEffect(() => {
         bottomRef.current.scrollIntoView({behavior: 'smooth'});
     })
-    
-    
 
     function getChatHistory() {
         React.useEffect(() => {
@@ -27,6 +25,8 @@ export default function ChatHistory() {
 
     function updateChatHistory(data) {
         console.log("Received message from server: " + data["all_messages"])
+        console.log(data["all_messages"])
+        setUsers(data["all_users"])
         setMessages(data["all_messages"])
     }
 
@@ -35,10 +35,11 @@ export default function ChatHistory() {
         <div className="chat-history-container">
             <ul className="chat-history">
             { messages.map((message, index) => (
+                // let user_name = users[index];
                 // <Message key={ index } username={ message.name } userMessage={ message.message }  />
                 
                 // <li key={index}>{ message }</li>
-                <Message key={ index } userMessage={ message }  />
+                <Message key={ index } username = { users[index] }userMessage={ message }  />
             ))}
             </ul>
             <div ref={bottomRef} />

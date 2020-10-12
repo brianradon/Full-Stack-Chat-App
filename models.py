@@ -12,6 +12,6 @@ class Chat(db.Model):
         # self.username = u
         self.message = m
         
-    # def __repr__(self):
-    #     return '<Usps address: %s>' % self.message
+    def __repr__(self):
+        return '<Usps address: %s>' % self.message
 

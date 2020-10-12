@@ -4,7 +4,6 @@ import os
 import flask
 import flask_sqlalchemy
 import flask_socketio
-import models
 import time
 
 # test comment
@@ -32,13 +31,27 @@ db = flask_sqlalchemy.SQLAlchemy(app)
 db.init_app(app)
 db.app = app
 
+class Chat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(16))
+    message = db.Column(db.String(255))
+
+    def __init__(self, u, m):
+        self.username = u
+        self.message = m
+        
+    def __repr__(self):
+        return '<Usps address: %s>' % self.message
+
 db.create_all()
 db.session.commit()
 
 def emit_all_messages(channel):
-    all_messages = [db_chat.message for db_chat in db.session.query(models.Chat).all()]
+    all_users = [db_chat.username for db_chat in db.session.query(Chat).all()]
+    all_messages = [db_chat.message for db_chat in db.session.query(Chat).all()]
 
     socketio.emit(channel, {
+        "all_users": all_users,
         "all_messages": all_messages
     })
 
@@ -61,7 +74,7 @@ class ChatBot:
         })
         bot_message = """Hello there!  I am Poke Bot.  Try typing '!! help' for a list of 
             functionality! """
-        db.session.add(models.Chat(bot_message))
+        db.session.add(Chat(bot_message))
         db.session.commit();
         
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -122,7 +135,7 @@ def message_to_client(data):
         "message": data["message"]
     }
 
-    db.session.add(models.Chat(data["message"]))
+    db.session.add(Chat(data["name"], data["message"]))
     db.session.commit();
 
     emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
