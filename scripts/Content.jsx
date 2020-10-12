@@ -25,7 +25,7 @@ export function Content() {
                     <MessageForm />
                 </div>
             </div>
-            
+            <img className="wallpaper" src="../static/img/poke-wallpaper.jpg" alt=""/>
         </div>
     );
 }

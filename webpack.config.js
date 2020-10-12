@@ -24,8 +24,13 @@ module.exports = {
                         ]
                     ]
                 }
-            }
-        ]
+            }, 
+            {
+                test: /\.(gif|svg|jpg|png)$/,
+                loader: "file-loader",
+              },
+              {test: /\.(jpe?g|png|gif|woff|woff2|eot|ttf|svg)(\?[a-z0-9=.]+)?$/,
+                loader: 'url-loader?limit=100000' }]
     },
     resolve: {
     extensions: ['.js', '.jsx'],

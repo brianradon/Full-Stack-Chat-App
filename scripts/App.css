@@ -5,18 +5,20 @@
     overflow: hidden;
 }
 
-body {
-    background-color: blue;
-}
-
 .navigation {
     height: 60px;
     width: 100%;
     background-color: green;
 }
 
+.wallpaper {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: -1;
+}
+
 .container {
-    background-color: purple;
     height: 94vh;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
