@@ -21,8 +21,7 @@ sql_user = os.environ['SQL_USER']
 sql_pwd = os.environ['SQL_PASSWORD']
 dbuser = os.environ['USER']
 
-database_uri = 'postgresql://{}:{}@localhost/postgres'.format(
-    sql_user, sql_pwd)
+database_uri = os.getenv("DATABASE_URL")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 
@@ -218,5 +217,7 @@ def message_to_client(data):
 if __name__ == '__main__': 
     socketio.run(
         app,
-        debug=True
+        debug=True,
+        host = os.getenv("HOST", "0.0.0.0"),
+        port = int(os.getenv("PORT", 8080))
     )
