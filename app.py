@@ -7,8 +7,6 @@ import flask_socketio
 import time
 import requests
 
-# test comment
-
 MESSAGES_RECEIVED_CHANNEL = "all messages received"
 
 app = flask.Flask(__name__)
@@ -35,14 +33,13 @@ db.app = app
 class Chat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(16))
-    message = db.Column(db.String(500))
+    message = db.Column(db.String(100))
+    userType = db.Column(db.String(4))
 
-    def __init__(self, u, m):
+    def __init__(self, u, m, t):
         self.username = u
         self.message = m
-        
-    def __repr__(self):
-        return '<Usps address: %s>' % self.message
+        self.userType = t
 
 db.create_all()
 db.session.commit()
@@ -50,10 +47,12 @@ db.session.commit()
 def emit_all_messages(channel):
     all_users = [db_chat.username for db_chat in db.session.query(Chat).all()]
     all_messages = [db_chat.message for db_chat in db.session.query(Chat).all()]
+    all_types = [db_chat.userType for db_chat in db.session.query(Chat).all()]
 
     socketio.emit(channel, {
         "all_users": all_users,
-        "all_messages": all_messages
+        "all_messages": all_messages,
+        "all_types": all_types
     })
 
 # GLOBAL 
@@ -68,19 +67,22 @@ def checkBotMessage(string):
         poke_bot.github()
     elif (bot_string[0] == "!!" and bot_string[1].lower() == "pokedex" and bot_string[2]):
         poke_bot.pokeDex(bot_string[2])
+    elif (bot_string[0] == "!!" and bot_string[1].lower() == "funtranslate" and bot_string[2]):
+        poke_bot.funtranslate(" ".join(bot_string[2:]).replace(" ", "%20"))
+        print(" ".join(bot_string[2:]).replace(" ", "%20"))
     elif (bot_string[0] == "!!" and bot_string[1].lower() not in commands):
         poke_bot.noCommandFound(bot_string[1])
 
 class ChatBot:
     def __init__(self):
         self.bot_name = "Poke Bot"
-    
+
     def about(self):
         print("This is the about section!")
 
         bot_message = """Hello there!  I am Poke Bot.  Try typing '!! help' for a list of 
             functionality! """
-        db.session.add(Chat(self.bot_name, bot_message))
+        db.session.add(Chat(self.bot_name, bot_message, "bot"))
         db.session.commit();
         
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -89,7 +91,7 @@ class ChatBot:
         print("This is the about section!")
 
         bot_message = """Checkout the source code at: https://github.com/NJIT-CS490/project2-br96"""
-        db.session.add(Chat(self.bot_name, bot_message))
+        db.session.add(Chat(self.bot_name, bot_message, "bot"))
         db.session.commit();
         
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -97,20 +99,35 @@ class ChatBot:
     def help(self):
         print("This is the help section!")
         
-        bot_message = """Looking for help?  Try some of these commands:
-                <br>!! about<br>!! funtranslate <em>message</em><br>!! github<br>!! pokedex <em>pokemon</em>"""
+        bot_message = """Try these commands:<br>!! help<br>!! github<br>!! about"""
 
-        db.session.add(Chat(self.bot_name, bot_message))
+        db.session.add(Chat(self.bot_name, bot_message, "bot"))
         db.session.commit();
 
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
     def noCommandFound(self, command):
-        socketio.emit("message to client",
-        {
-            "name": self.bot_name,
-            "message": "'!! {}' is not a command".format(command)
-        })
+        
+
+        bot_message = "'!! {}' is not a command".format(command)
+
+        db.session.add(Chat(self.bot_name, bot_message, "bot"))
+        db.session.commit();
+
+        emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
+
+    def funtranslate(self, text):
+
+        r = requests.get("https://api.funtranslations.com/translate/navi.json?text={}".format(text))
+
+        bot_message =  str(r.json()["contents"]["translated"])
+
+        print(bot_message)
+
+        # db.session.add(Chat(self.bot_name, bot_message, "bot"))
+        # db.session.commit();
+
+        # emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
     def pokeDex(self, pokemon):
         selected_pokemon = pokemon
@@ -122,25 +139,18 @@ class ChatBot:
         if (pokedex.status_code == 404):
             bot_message = """That's not a pokemon!  Try again!"""
 
-            db.session.add(Chat(self.bot_name, bot_message))
+            db.session.add(Chat(self.bot_name, bot_message, "bot"))
             db.session.commit();
 
             emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
         else:
             poke_name = pokedex.json()["name"].upper()
             poke_id = pokedex.json()["id"]
-            poke_height = self.addDecimal(str(pokedex.json()["height"]))
-            poke_weight = self.addDecimal(str(pokedex.json()["weight"]))
-            types = []
 
-            for type in pokedex.json()["types"]:
-                types.append((type["type"]["name"]).upper())
 
-            typeString = self.convertTypestoString(types)
+            bot_message = "{} is the {} pokemon.".format(poke_name, poke_id)
 
-            bot_message = self.convertToHtML(poke_name, poke_id, poke_height, poke_weight, typeString)
-
-            db.session.add(Chat(self.bot_name, bot_message))
+            db.session.add(Chat(self.bot_name, bot_message, "bot"))
             db.session.commit();
 
             emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -168,9 +178,9 @@ class ChatBot:
                 </div>""".format(name, pokeid, height, weight, types)
 
 poke_bot = ChatBot()
-commands = ["help", "about", "funtranslate", "pokedex"]
+commands = ["help", "about", "funtranslate", "pokedex", "github"]
 
-# SOCKET
+
 @app.route('/')
 def hello():
     emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -179,10 +189,6 @@ def hello():
 
 @socketio.on('connect')
 def on_connect():
-    print('Someone connected!')
-    socketio.emit('connected', {
-        'test': 'Connected'
-    })
 
     emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
@@ -198,17 +204,14 @@ def message_to_client(data):
         "message": data["message"]
     }
 
-    db.session.add(Chat(data["name"], data["message"]))
+    db.session.add(Chat(data["name"], data["message"], "user"))
     db.session.commit();
 
     emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
     print(data["message"])
     print("Sending message")
-    socketio.emit("message to client", {
-        "name": message_received["name"],
-        "message": message_received["message"]
-    })
+    
     print("Message sent")
     checkBotMessage(data["message"])
 

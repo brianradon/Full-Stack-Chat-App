@@ -2,7 +2,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    overflow: hidden;
 }
 
 .navigation {
@@ -56,6 +55,7 @@
     display: flex;
     flex-direction: column;
     grid-gap: 10px;
+    min-height: 100%;
 }
 
 .submit-form {
@@ -64,10 +64,20 @@
     height: 100px;
 }
 
-.user-message {
+.bot {
+    display: inline-block;
+    background-color: crimson;
+    font-size: 1.5rem;
+    padding: 10px;
+    border-radius: 10px;
+    word-wrap: break-word;
+}
+
+.user {
     display: inline-block;
     background-color: pink;
     font-size: 1.5rem;
     padding: 10px;
     border-radius: 10px;
+    word-wrap: break-word;
 }

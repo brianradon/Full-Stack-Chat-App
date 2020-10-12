@@ -8,6 +8,7 @@ import { get } from 'jquery';
 export default function ChatHistory() {
     const [users, setUsers] = React.useState([]);
     const [messages, setMessages] = React.useState([]);
+    const [type, setTypes] = React.useState([]);
 
     const bottomRef = React.useRef(null);
     React.useEffect(() => {
@@ -25,9 +26,10 @@ export default function ChatHistory() {
 
     function updateChatHistory(data) {
         console.log("Received message from server: " + data["all_messages"])
-        console.log(data["all_messages"])
+        console.log(data["all_types"])
         setUsers(data["all_users"])
         setMessages(data["all_messages"])
+        setTypes(data["all_types"])
     }
 
     getChatHistory();
@@ -39,7 +41,7 @@ export default function ChatHistory() {
                 // <Message key={ index } username={ message.name } userMessage={ message.message }  />
                 
                 // <li key={index}>{ message }</li>
-                <Message key={ index } username = { users[index] }userMessage={ message }  />
+                <Message key={ index } username = { users[index] }userMessage={ message } userType={ type[index] }/>
             ))}
             </ul>
             <div ref={bottomRef} />

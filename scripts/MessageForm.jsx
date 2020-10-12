@@ -11,7 +11,6 @@ export function MessageForm() {
         Socket.emit("message to server", {
             "name": nameReference.current.value,
             "message": messageReference.current.value
-            // "userType": "user"
         });
 
         // console.log(nameReference.current.value + ": " + messageReference.current.value);
