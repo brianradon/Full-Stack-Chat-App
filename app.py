@@ -21,8 +21,9 @@ sql_user = os.environ['SQL_USER']
 sql_pwd = os.environ['SQL_PASSWORD']
 # dbuser = os.environ['USER']
 
-database_uri = os.getenv("DATABASE_URL")
+# database_uri = os.getenv("DATABASE_URL") # use this for heroku launch
 
+database_uri = "postgresql://{}:{}@localhost/postgres".format(sql_user,sql_pwd) # use this for local testing
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 
 db = flask_sqlalchemy.SQLAlchemy(app)
@@ -80,7 +81,7 @@ class ChatBot:
         print("This is the about section!")
 
         bot_message = """Hello there!  I am Poke Bot.  Try typing '!! help' for a list of 
-            functionality! """
+            commands! """
         db.session.add(Chat(self.bot_name, bot_message, "bot"))
         db.session.commit();
         
@@ -98,7 +99,7 @@ class ChatBot:
     def help(self):
         print("This is the help section!")
         
-        bot_message = """Try these commands:<br>!! help<br>!! github<br>!! about"""
+        bot_message = """Try these commands:<br>!! help<br>!! github<br>!! about<br>!! pokedex <em>pokemon-name</em>"""
 
         db.session.add(Chat(self.bot_name, bot_message, "bot"))
         db.session.commit();

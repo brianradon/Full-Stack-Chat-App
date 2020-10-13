@@ -5,8 +5,7 @@ export default function Message({ username, userMessage, userType }) {
         
     return (
         <div>
-            <div className="user-name">{ username }</div>
-            {/* <div className="user-message">{ userMessage }</div> */}
+            <div className="user-name">User: { username }</div>
             <div className={ userType } dangerouslySetInnerHTML={{__html: userMessage }} />
         </div>
     )
