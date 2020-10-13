@@ -21,9 +21,9 @@ sql_user = os.environ['SQL_USER']
 sql_pwd = os.environ['SQL_PASSWORD']
 # dbuser = os.environ['USER']
 
-database_uri = os.getenv("DATABASE_URL") # use this for heroku launch
+# database_uri = os.getenv("DATABASE_URL") # use this for heroku launch
 
-# database_uri = "postgresql://{}:{}@localhost/postgres".format(sql_user,sql_pwd) # use this for local testing
+database_uri = "postgresql://{}:{}@localhost/postgres".format(sql_user,sql_pwd) # use this for local testing
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 
 db = flask_sqlalchemy.SQLAlchemy(app)
@@ -68,8 +68,8 @@ def checkBotMessage(string):
     elif (bot_string[0] == "!!" and bot_string[1].lower() == "pokedex" and bot_string[2]):
         poke_bot.pokeDex(bot_string[2])
     elif (bot_string[0] == "!!" and bot_string[1].lower() == "funtranslate" and bot_string[2]):
-        poke_bot.funtranslate(" ".join(bot_string[2:]).replace(" ", "%20"))
-        print(" ".join(bot_string[2:]).replace(" ", "%20"))
+        print(" ".join(bot_string[2:]))
+        poke_bot.funtranslate(" ".join(bot_string[2:]))
     elif (bot_string[0] == "!!" and bot_string[1].lower() not in commands):
         poke_bot.noCommandFound(bot_string[1])
 
@@ -117,17 +117,21 @@ class ChatBot:
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
     def funtranslate(self, text):
+        url = "https://api.funtranslations.com/translate/yoda.json?text=" + text
+        response = requests.get(url)
+        print("STATUS CODE: " + str(response.status_code))
+        if (response.status_code == 429):
+            bot_message = "Too many calls.  Please limit to 5 per hour, per the api."
+            bot_message
+        else:
+            data = response.json()
+            bot_message = data["contents"]["translated"]
+            return bot_message
 
-        r = requests.get("https://api.funtranslations.com/translate/navi.json?text={}".format(text))
+        db.session.add(Chat(self.bot_name, bot_message, "bot"))
+        db.session.commit();
 
-        bot_message =  str(r.json()["contents"]["translated"])
-
-        print(bot_message)
-
-        # db.session.add(Chat(self.bot_name, bot_message, "bot"))
-        # db.session.commit();
-
-        # emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
+        emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
     def pokeDex(self, pokemon):
         selected_pokemon = pokemon
