@@ -12,8 +12,7 @@ export function MessageForm() {
             "name": nameReference.current.value,
             "message": messageReference.current.value
         });
-
-        // console.log(nameReference.current.value + ": " + messageReference.current.value);
+        
         messageReference.current.value = null;
         e.preventDefault();
     }
