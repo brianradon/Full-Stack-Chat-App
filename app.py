@@ -23,7 +23,7 @@ sql_pwd = os.environ['SQL_PASSWORD']
 
 database_uri = os.getenv("DATABASE_URL") # use this for heroku launch
 
-# database_uri = "postgresql://{}:{}@localhost/postgres".format(sql_user,sql_pwd) # use this for local testing
+database_uri = "postgresql://{}:{}@localhost/postgres".format(sql_user,sql_pwd) # use this for local testing
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 
 db = flask_sqlalchemy.SQLAlchemy(app)
@@ -122,11 +122,9 @@ class ChatBot:
         print("STATUS CODE: " + str(response.status_code))
         if (response.status_code == 429):
             bot_message = "Too many calls.  Please limit to 5 per hour, per the api."
-            bot_message
         else:
             data = response.json()
             bot_message = data["contents"]["translated"]
-            return bot_message
 
         db.session.add(Chat(self.bot_name, bot_message, "bot"))
         db.session.commit();
