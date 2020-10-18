@@ -1,7 +1,7 @@
 import React from 'react'
 import { GoogleLogin } from 'react-google-login';
 
-const { REACT_APP_KEY } = process.env;
+const KEY = process.env.REACT_APP_KEY;
 
 export default function Login() {
     const onSuccess = (response) => {
@@ -14,14 +14,13 @@ export default function Login() {
     }
 
     return (
-        <div className="google-login hidden">
+        <div className="google-login">
             <GoogleLogin
-                clientId={ REACT_APP_KEY }
+                clientId={KEY}
                 buttonText="Login"
                 onSuccess={ onSuccess }
                 onFailure={ onFailure }
                 cookiePolicy={ 'single_host_origin' }
-                style={{ width: '100%' }}
                 isSignedIn={ true }
             />
         </div>

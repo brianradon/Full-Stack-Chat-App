@@ -1,3 +1,5 @@
+const Dotenv = require('dotenv-webpack');
+
 module.exports = {
     entry: "./scripts/Main.jsx",
     output: {
@@ -34,5 +36,8 @@ module.exports = {
     },
     resolve: {
     extensions: ['.js', '.jsx'],
-  }
+  },
+  plugins: [
+    new Dotenv()
+  ]
 };
