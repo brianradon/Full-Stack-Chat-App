@@ -16,7 +16,7 @@ export function Content() {
                 <Sidebar />
                 <div className="chat-container">
                     <ChatHistory />
-                    {/* <Login /> */}
+                    <Login />
                     <MessageForm />
                 </div>
             </div>
