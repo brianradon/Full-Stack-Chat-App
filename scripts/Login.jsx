@@ -1,8 +1,6 @@
 import React from 'react'
 import { GoogleLogin } from 'react-google-login';
 
-const KEY = process.env.REACT_APP_KEY;
-
 export default function Login() {
     const onSuccess = (response) => {
         console.log('[Login Sucess] currentUser:', response.profileObj);
@@ -16,7 +14,7 @@ export default function Login() {
     return (
         <div className="google-login">
             <GoogleLogin
-                clientId={KEY}
+                clientId='338963299857-ljp88d5pm444n5g7f18ocek5k0olah9d.apps.googleusercontent.com'
                 buttonText="Login"
                 onSuccess={ onSuccess }
                 onFailure={ onFailure }
