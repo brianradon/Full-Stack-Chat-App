@@ -3,14 +3,26 @@ import { Socket } from "./Socket";
 
 export function MessageForm() {
 
-    let nameReference = React.useRef();
     let messageReference = React.useRef();
+    
+    let oauthName = "";
+    let oauthimg = "";
 
+    React.useEffect(() => {
+        Socket.on("oauth to user", function(data) {
+            console.log(data["name"])
+            console.log(data["imgurl"])
+            oauthName = data["name"]
+            oauthimg = data["imgurl"]
+        });
+    })
+    
     function addMessage(e) {
-
         Socket.emit("message to server", {
-            "name": nameReference.current.value,
-            "message": messageReference.current.value
+            "oauthimg": oauthimg,
+            "name": oauthName,
+            "message": messageReference.current.value,
+            "authorized": "y"
         });
         
         messageReference.current.value = null;
@@ -20,7 +32,6 @@ export function MessageForm() {
     return (
         <div className="submit-form">
             <form onSubmit={ addMessage }>
-                <input type="text" placeholder="Username" ref={ nameReference }/>
                 <input type="text" placeholder="Type in a message..." ref={ messageReference }/>
                 <button type="Submit">Send</button>
             </form>

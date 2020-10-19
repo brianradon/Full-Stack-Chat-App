@@ -23,37 +23,68 @@ sql_pwd = os.environ['SQL_PASSWORD']
 
 database_uri = os.getenv("DATABASE_URL") # use this for heroku launch
 
-# database_uri = "postgresql://{}:{}@localhost/postgres".format(sql_user,sql_pwd) # use this for local testing
+database_uri = "postgresql://{}:{}@localhost/postgres".format(sql_user,sql_pwd) # use this for local testing
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 
 db = flask_sqlalchemy.SQLAlchemy(app)
 db.init_app(app)
 db.app = app
 
-class Chat(db.Model):
+# class Chat(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     username = db.Column(db.String(16))
+#     message = db.Column(db.String(100))
+#     userType = db.Column(db.String(4))
+
+#     def __init__(self, u, m, t):
+#         self.username = u
+#         self.message = m
+#         self.userType = t
+
+class VerifiedChat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(16))
+    pfp = db.Column(db.String(150))
+    username = db.Column(db.String(32))
     message = db.Column(db.String(100))
     userType = db.Column(db.String(4))
+    userVerified = db.Column(db.String(1))
 
-    def __init__(self, u, m, t):
+    def __init__(self, p, u, m, t, v):
+        self.pfp = p
         self.username = u
         self.message = m
         self.userType = t
+        self.userVerified = v
 
 db.create_all()
 db.session.commit()
 
+# def emit_all_messages(channel):
+#     all_users = [db_chat.username for db_chat in db.session.query(Chat).all()]
+#     all_messages = [db_chat.message for db_chat in db.session.query(Chat).all()]
+#     all_types = [db_chat.userType for db_chat in db.session.query(Chat).all()]
+
+#     socketio.emit(channel, {
+#         "all_users": all_users,
+#         "all_messages": all_messages,
+#         "all_types": all_types
+#     })
+
 def emit_all_messages(channel):
-    all_users = [db_chat.username for db_chat in db.session.query(Chat).all()]
-    all_messages = [db_chat.message for db_chat in db.session.query(Chat).all()]
-    all_types = [db_chat.userType for db_chat in db.session.query(Chat).all()]
+    all_pfps = [db_chat.pfp for db_chat in db.session.query(VerifiedChat).all()]
+    all_users = [db_chat.username for db_chat in db.session.query(VerifiedChat).all()]
+    all_messages = [db_chat.message for db_chat in db.session.query(VerifiedChat).all()]
+    all_types = [db_chat.userType for db_chat in db.session.query(VerifiedChat).all()]
+    all_verified = [db_chat.userVerified for db_chat in db.session.query(VerifiedChat).all()]
 
     socketio.emit(channel, {
+        "all_pfps": all_pfps,
         "all_users": all_users,
         "all_messages": all_messages,
-        "all_types": all_types
+        "all_types": all_types,
+        "all_verified": all_verified
     })
+
 
 # GLOBAL 
 def checkBotMessage(string):
@@ -207,8 +238,12 @@ def message_to_client(data):
         "name": data["name"],
         "message": data["message"]
     }
-
-    db.session.add(Chat(data["name"], data["message"], "user"))
+    print(data["name"])
+    print(data["message"])
+    print(data["oauthimg"])
+    print(data["authorized"])
+    # db.session.add(Chat(data["name"], data["message"], "user"))
+    db.session.add(VerifiedChat(data["oauthimg"], data["name"], data["message"], "user", data["authorized"]))
     db.session.commit();
 
     emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -218,6 +253,15 @@ def message_to_client(data):
     
     print("Message sent")
     checkBotMessage(data["message"])
+
+@socketio.on("oauth to server")
+def return_oauth_info(data):
+    print("OAUTH: " + data["name"])
+    print("OAUTH: " + data["imgurl"])
+    socketio.emit("oauth to user", {
+        "imgurl": data["imgurl"],
+        "name": data["name"]
+    })
 
 if __name__ == '__main__': 
     socketio.run(
