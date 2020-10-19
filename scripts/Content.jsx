@@ -5,7 +5,7 @@ import { MessageForm } from './MessageForm';
 import "./App.css";
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
-// import Login from "./Login";
+import Login from "./Login";
 
 export function Content() {
     
