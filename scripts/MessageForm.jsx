@@ -11,23 +11,28 @@ export function MessageForm( {userID} ) {
 
     // const num = Math.ceil(Math.random() * 100000000);
 
+    const [valid, setValid] = React.useState(false);
+
     React.useEffect(() => {
         Socket.on({userID}.userID, function(data) {
             console.log(data["name"])
             console.log(data["imgurl"])
             oauthName = data["name"]
             oauthimg = data["imgurl"]
+            setValid(true);
         });
     })
-    
+
     function addMessage(e) {
-        Socket.emit("message to server", {
-            "userID": {userID}.userID,
-            "oauthimg": oauthimg,
-            "name": oauthName,
-            "message": messageReference.current.value,
-            "authorized": "y"
-        });
+        if (valid) {
+            Socket.emit("message to server", {
+                "userID": {userID}.userID,
+                "oauthimg": oauthimg,
+                "name": oauthName,
+                "message": messageReference.current.value,
+                "authorized": "y"
+            });
+        }
         
         console.log("THE NUMBER IS: " + {userID}.userID);
 
