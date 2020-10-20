@@ -32,7 +32,7 @@ db = flask_sqlalchemy.SQLAlchemy(app)
 db.init_app(app)
 db.app = app
 
-class VerifiedChat(db.Model):
+class NewChat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pfp = db.Column(db.String(150))
     username = db.Column(db.String(32))
@@ -51,11 +51,11 @@ db.create_all()
 db.session.commit()
 
 def emit_all_messages(channel):
-    all_pfps = [db_chat.pfp for db_chat in db.session.query(VerifiedChat).all()]
-    all_users = [db_chat.username for db_chat in db.session.query(VerifiedChat).all()]
-    all_messages = [db_chat.message for db_chat in db.session.query(VerifiedChat).all()]
-    all_types = [db_chat.userType for db_chat in db.session.query(VerifiedChat).all()]
-    all_verified = [db_chat.userVerified for db_chat in db.session.query(VerifiedChat).all()]
+    all_pfps = [db_chat.pfp for db_chat in db.session.query(NewChat).all()]
+    all_users = [db_chat.username for db_chat in db.session.query(NewChat).all()]
+    all_messages = [db_chat.message for db_chat in db.session.query(NewChat).all()]
+    all_types = [db_chat.userType for db_chat in db.session.query(NewChat).all()]
+    all_verified = [db_chat.userVerified for db_chat in db.session.query(NewChat).all()]
 
     socketio.emit(channel, {
         "all_pfps": all_pfps,
@@ -116,7 +116,7 @@ class ChatBot:
 
         bot_message = """Hello there!  I am Poke Bot.  Try typing '!! help' for a list of 
             commands! """
-        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+        db.session.add(NewChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
         
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -125,7 +125,7 @@ class ChatBot:
         print("This is the about section!")
 
         bot_message = """Checkout the source code at: https://github.com/NJIT-CS490/project2-br96"""
-        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+        db.session.add(NewChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
         
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -135,7 +135,7 @@ class ChatBot:
         
         bot_message = """Try these commands:<br>!! help<br>!! github<br>!! about<br>!! pokedex <em>pokemon-name</em><br>!! funtranslate <em>message</em>"""
 
-        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+        db.session.add(NewChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
 
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -145,7 +145,7 @@ class ChatBot:
 
         bot_message = "'!! {}' is not a command".format(command)
 
-        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+        db.session.add(NewChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
 
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -160,7 +160,7 @@ class ChatBot:
             data = response.json()
             bot_message = data["contents"]["translated"]
 
-        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+        db.session.add(NewChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
 
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -175,7 +175,7 @@ class ChatBot:
         if (pokedex.status_code == 404):
             bot_message = """That's not a pokemon!  Try again!"""
 
-            db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+            db.session.add(NewChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
             db.session.commit();
 
             emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -186,7 +186,7 @@ class ChatBot:
 
             bot_message = "{} is the {} pokemon.".format(poke_name, poke_id)
 
-            db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+            db.session.add(NewChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
             db.session.commit();
 
             emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -215,13 +215,13 @@ class ChatBot:
 
     def postImage(self, message):
         bot_message = "<a href={}><img style='width: 400px' src={}></a>".format(message, message)
-        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+        db.session.add(NewChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
     def urlImage(self, message):
         bot_message = "<a href={}>{}</a>".format(message, message)
-        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+        db.session.add(NewChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
@@ -255,17 +255,17 @@ def message_to_client(data):
     print(data["message"])
     print(data["oauthimg"])
     print(data["authorized"])
-    # db.session.add(VerifiedChat(data["name"], data["message"], "user"))
+    # db.session.add(NewChat(data["name"], data["message"], "user"))
 
     checkurlTest = checkurl(data["message"])
 
     if (checkurl(data["message"])):
         print("SUCCESSFUL CHECK")
         new_message = "<a href={}>{}</a>".format(data["message"], data["message"])
-        db.session.add(VerifiedChat(data["oauthimg"], data["name"], new_message, "user", data["authorized"]))
+        db.session.add(NewChat(data["oauthimg"], data["name"], new_message, "user", data["authorized"]))
         db.session.commit()
     else:
-        db.session.add(VerifiedChat(data["oauthimg"], data["name"], data["message"], "user", data["authorized"]))
+        db.session.add(NewChat(data["oauthimg"], data["name"], data["message"], "user", data["authorized"]))
         db.session.commit()
 
     emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
