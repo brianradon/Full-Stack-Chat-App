@@ -9,22 +9,19 @@ export function MessageForm( {userID} ) {
     let oauthName = "";
     let oauthimg = "";
 
-    // const num = Math.ceil(Math.random() * 100000000);
-
-    const [valid, setValid] = React.useState(false);
-
+    let auth = false;
     React.useEffect(() => {
         Socket.on({userID}.userID, function(data) {
             console.log(data["name"])
             console.log(data["imgurl"])
             oauthName = data["name"]
             oauthimg = data["imgurl"]
-            setValid(true);
+            auth = true;
         });
     })
 
     function addMessage(e) {
-        if (valid) {
+        if (auth)
             Socket.emit("message to server", {
                 "userID": {userID}.userID,
                 "oauthimg": oauthimg,
@@ -32,7 +29,7 @@ export function MessageForm( {userID} ) {
                 "message": messageReference.current.value,
                 "authorized": "y"
             });
-        }
+        
         
         console.log("THE NUMBER IS: " + {userID}.userID);
 
@@ -43,8 +40,8 @@ export function MessageForm( {userID} ) {
     return (
         <div className="submit-form">
             <form onSubmit={ addMessage }>
-                <input type="text" placeholder="Type in a message..." ref={ messageReference }/>
-                <button type="Submit">Send</button>
+                <input className="input-form" type="text" placeholder="Type in a message..." ref={ messageReference }/>
+                <button className="submit-button" type="Submit">Send</button>
             </form>
         </div>
     )

@@ -7,6 +7,8 @@ import flask_socketio
 import time
 import requests
 
+global_user_counter = 0
+
 MESSAGES_RECEIVED_CHANNEL = "all messages received"
 
 app = flask.Flask(__name__)
@@ -30,22 +32,11 @@ db = flask_sqlalchemy.SQLAlchemy(app)
 db.init_app(app)
 db.app = app
 
-# class Chat(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     username = db.Column(db.String(16))
-#     message = db.Column(db.String(100))
-#     userType = db.Column(db.String(4))
-
-#     def __init__(self, u, m, t):
-#         self.username = u
-#         self.message = m
-#         self.userType = t
-
 class VerifiedChat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pfp = db.Column(db.String(150))
     username = db.Column(db.String(32))
-    message = db.Column(db.String(100))
+    message = db.Column(db.String(1000))
     userType = db.Column(db.String(4))
     userVerified = db.Column(db.String(1))
 
@@ -58,17 +49,6 @@ class VerifiedChat(db.Model):
 
 db.create_all()
 db.session.commit()
-
-# def emit_all_messages(channel):
-#     all_users = [db_chat.username for db_chat in db.session.query(Chat).all()]
-#     all_messages = [db_chat.message for db_chat in db.session.query(Chat).all()]
-#     all_types = [db_chat.userType for db_chat in db.session.query(Chat).all()]
-
-#     socketio.emit(channel, {
-#         "all_users": all_users,
-#         "all_messages": all_messages,
-#         "all_types": all_types
-#     })
 
 def emit_all_messages(channel):
     all_pfps = [db_chat.pfp for db_chat in db.session.query(VerifiedChat).all()]
@@ -104,6 +84,28 @@ def checkBotMessage(string):
     elif (bot_string[0] == "!!" and bot_string[1].lower() not in commands):
         poke_bot.noCommandFound(bot_string[1])
 
+def isImage(message):
+        contentTypes = ["image/jpg", "image/jpeg", "image/gif", "image/png"]
+        try:
+            if(requests.head(message).status_code == 200):
+                r = requests.head(message)
+                print("ITS AN IMAGE")
+                if r.headers["Content-Type"] in contentTypes:
+                    poke_bot.postImage(message)
+        except:
+            pass
+
+def checkurl(message):
+    contentTypes = ["image/jpg", "image/jpeg", "image/gif", "image/png"]
+    try:
+        if(requests.head(message).status_code == 200):
+            r = requests.head(message)
+            print("ITS AN IMAGE")
+            if r.headers["Content-Type"] in contentTypes:
+                return True
+    except:
+        return False
+
 class ChatBot:
     def __init__(self):
         self.bot_name = "Poke Bot"
@@ -131,7 +133,7 @@ class ChatBot:
     def help(self):
         print("This is the help section!")
         
-        bot_message = """Try these commands:<br>!! help<br>!! github<br>!! about<br>!! pokedex <em>pokemon-name</em>"""
+        bot_message = """Try these commands:<br>!! help<br>!! github<br>!! about<br>!! pokedex <em>pokemon-name</em><br>!! funtranslate <em>message</em>"""
 
         db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
@@ -211,6 +213,18 @@ class ChatBot:
                     <p className='poke-types'>TYPE: {}</p>
                 </div>""".format(name, pokeid, height, weight, types)
 
+    def postImage(self, message):
+        bot_message = "<a href={}><img style='width: 400px' src={}></a>".format(message, message)
+        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+        db.session.commit();
+        emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
+
+    def urlImage(self, message):
+        bot_message = "<a href={}>{}</a>".format(message, message)
+        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
+        db.session.commit();
+        emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
+
 poke_bot = ChatBot()
 commands = ["help", "about", "funtranslate", "pokedex", "github"]
 
@@ -241,9 +255,18 @@ def message_to_client(data):
     print(data["message"])
     print(data["oauthimg"])
     print(data["authorized"])
-    # db.session.add(Chat(data["name"], data["message"], "user"))
-    db.session.add(VerifiedChat(data["oauthimg"], data["name"], data["message"], "user", data["authorized"]))
-    db.session.commit();
+    # db.session.add(VerifiedChat(data["name"], data["message"], "user"))
+
+    checkurlTest = checkurl(data["message"])
+
+    if (checkurl(data["message"])):
+        print("SUCCESSFUL CHECK")
+        new_message = "<a href={}>{}</a>".format(data["message"], data["message"])
+        db.session.add(VerifiedChat(data["oauthimg"], data["name"], new_message, "user", data["authorized"]))
+        db.session.commit()
+    else:
+        db.session.add(VerifiedChat(data["oauthimg"], data["name"], data["message"], "user", data["authorized"]))
+        db.session.commit()
 
     emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
@@ -252,9 +275,11 @@ def message_to_client(data):
     
     print("Message sent")
     checkBotMessage(data["message"])
+    isImage(data["message"])
 
 @socketio.on("oauth to server")
 def return_oauth_info(data):
+    print(data["userID"])
     print("OAUTH: " + data["name"])
     print("OAUTH: " + data["imgurl"])
     socketio.emit(data["userID"], {
