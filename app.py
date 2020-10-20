@@ -23,7 +23,7 @@ sql_pwd = os.environ['SQL_PASSWORD']
 
 database_uri = os.getenv("DATABASE_URL") # use this for heroku launch
 
-# database_uri = "postgresql://{}:{}@localhost/postgres".format(sql_user,sql_pwd) # use this for local testing
+database_uri = "postgresql://{}:{}@localhost/postgres".format(sql_user,sql_pwd) # use this for local testing
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 
 db = flask_sqlalchemy.SQLAlchemy(app)
@@ -107,13 +107,14 @@ def checkBotMessage(string):
 class ChatBot:
     def __init__(self):
         self.bot_name = "Poke Bot"
+        self.bot_pfp = "https://image.flaticon.com/icons/png/512/71/71339.png"
 
     def about(self):
         print("This is the about section!")
 
         bot_message = """Hello there!  I am Poke Bot.  Try typing '!! help' for a list of 
             commands! """
-        db.session.add(Chat(self.bot_name, bot_message, "bot"))
+        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
         
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -122,7 +123,7 @@ class ChatBot:
         print("This is the about section!")
 
         bot_message = """Checkout the source code at: https://github.com/NJIT-CS490/project2-br96"""
-        db.session.add(Chat(self.bot_name, bot_message, "bot"))
+        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
         
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -132,7 +133,7 @@ class ChatBot:
         
         bot_message = """Try these commands:<br>!! help<br>!! github<br>!! about<br>!! pokedex <em>pokemon-name</em>"""
 
-        db.session.add(Chat(self.bot_name, bot_message, "bot"))
+        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
 
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -142,7 +143,7 @@ class ChatBot:
 
         bot_message = "'!! {}' is not a command".format(command)
 
-        db.session.add(Chat(self.bot_name, bot_message, "bot"))
+        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
 
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -153,13 +154,11 @@ class ChatBot:
         print("STATUS CODE: " + str(response.status_code))
         if (response.status_code == 429):
             bot_message = "Too many calls.  Please limit to 5 per hour, per the api."
-            bot_message
         else:
             data = response.json()
             bot_message = data["contents"]["translated"]
-            return bot_message
 
-        db.session.add(Chat(self.bot_name, bot_message, "bot"))
+        db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
         db.session.commit();
 
         emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -174,7 +173,7 @@ class ChatBot:
         if (pokedex.status_code == 404):
             bot_message = """That's not a pokemon!  Try again!"""
 
-            db.session.add(Chat(self.bot_name, bot_message, "bot"))
+            db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
             db.session.commit();
 
             emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -185,7 +184,7 @@ class ChatBot:
 
             bot_message = "{} is the {} pokemon.".format(poke_name, poke_id)
 
-            db.session.add(Chat(self.bot_name, bot_message, "bot"))
+            db.session.add(VerifiedChat(self.bot_pfp, self.bot_name, bot_message, "bot", "n"))
             db.session.commit();
 
             emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
@@ -224,7 +223,6 @@ def hello():
 
 @socketio.on('connect')
 def on_connect():
-
     emit_all_messages(MESSAGES_RECEIVED_CHANNEL)
 
 @socketio.on('disconnect')
@@ -238,6 +236,7 @@ def message_to_client(data):
         "name": data["name"],
         "message": data["message"]
     }
+    print(data["userID"])
     print(data["name"])
     print(data["message"])
     print(data["oauthimg"])
@@ -258,7 +257,7 @@ def message_to_client(data):
 def return_oauth_info(data):
     print("OAUTH: " + data["name"])
     print("OAUTH: " + data["imgurl"])
-    socketio.emit("oauth to user", {
+    socketio.emit(data["userID"], {
         "imgurl": data["imgurl"],
         "name": data["name"]
     })

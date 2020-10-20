@@ -96,10 +96,12 @@
 }
 
 .y {
+    background-color: green;
     color: white;
 }
 
 .n {
+    background-color: orange;
     color: grey;
 }
 .user {

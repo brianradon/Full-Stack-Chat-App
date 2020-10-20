@@ -8,7 +8,8 @@ import Sidebar from './Sidebar';
 import Login from "./Login";
 
 export function Content() {
-    
+    const num = Math.ceil(Math.random() * 100000000);
+
     return (
         <div>
             <Navbar />
@@ -16,8 +17,8 @@ export function Content() {
                 <Sidebar />
                 <div className="chat-container">
                     <ChatHistory />
-                    <Login />
-                    <MessageForm />
+                    <Login userID={num} />
+                    <MessageForm userID={num} />
                 </div>
             </div>
             <img className="wallpaper" src="../static/img/poke-wallpaper.jpg" alt=""/>

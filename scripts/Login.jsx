@@ -2,13 +2,14 @@ import React from 'react'
 import { GoogleLogin } from 'react-google-login';
 import { Socket } from "./Socket";
 
-export default function Login() {
+export default function Login( {userID} ) {
     const onSuccess = (response) => {
         console.log('[Login Sucess] currentUser:', response.profileObj);
         console.log('[Login Sucess] currentUser:', response.profileObj.email);
         console.log('[Login Sucess] currentUser:', response.profileObj.imageUrl);
 
         Socket.emit("oauth to server", {
+            "userID": {userID}.userID,
             "imgurl": response.profileObj.imageUrl,
             "name": response.profileObj.email,
         });
@@ -26,7 +27,7 @@ export default function Login() {
                 onSuccess={ onSuccess }
                 onFailure={ onFailure }
                 cookiePolicy={ 'single_host_origin' }
-                isSignedIn={ true }
+                isSignedIn={ false }
             />
         </div>
     )

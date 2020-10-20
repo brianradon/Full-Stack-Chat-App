@@ -4,7 +4,7 @@ import Message from "./Message";
 
 
 
-export default function ChatHistory() {
+export default function ChatHistory( {userID}) {
     const [pfps, setPfps] = React.useState([]);
     const [users, setUsers] = React.useState([]);
     const [messages, setMessages] = React.useState([]);
